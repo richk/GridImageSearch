@@ -14,78 +14,84 @@
         android:layout_height="wrap_content"
         android:text="@string/settings_title"
         android:textAppearance="?android:attr/textAppearanceMedium" />
-   
+
     <LinearLayout
         android:id="@+id/llImageSize"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/tvSettigsTitle"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal" >
-        
+
         <TextView
-        android:id="@+id/tvImageSize"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Image Size"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-        
-        <EditText
-        android:id="@+id/etImageSize"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10" />
+            android:id="@+id/tvImageSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/image_size_text"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Spinner
+            android:id="@+id/etImageSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/image_size_hint"
+            android:inputType="text"
+            android:gravity="right"
+            android:ems="10" />
 
         <requestFocus
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
-        
     </LinearLayout>
-    
+
     <LinearLayout
         android:id="@+id/llColorFilter"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/llImageSize"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal" >
-        
-        <TextView
-        android:id="@+id/tvColorFilter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Color Filter"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-        
-        <EditText
-        android:id="@+id/etColorFilter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10" />
 
+        <TextView
+            android:id="@+id/tvColorFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/color_filter_text"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Spinner
+            android:id="@+id/etColorFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/color_filter_hint"
+            android:inputType="text"
+            android:gravity="right"
+            android:ems="10" />
     </LinearLayout>
-    
+
     <LinearLayout
         android:id="@+id/llImageType"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/llIColorFilter"
-        android:layout_marginTop="30dp"
+        android:layout_below="@+id/llColorFilter"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal" >
-        
-        <TextView
-        android:id="@+id/tvImageType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Image Type"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-        
-        <EditText
-        android:id="@+id/etImageType"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10" />
 
+        <TextView
+            android:id="@+id/tvImageType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/image_type_text"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <Spinner
+            android:id="@+id/etImageType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/image_type_hint"
+            android:inputType="text"
+            android:gravity="right"
+            android:ems="10" />
     </LinearLayout>
 
     <LinearLayout
@@ -93,22 +99,34 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/llImageType"
-        android:layout_marginTop="30dp"
+        android:layout_marginTop="20dp"
         android:orientation="horizontal" >
-        
-        <TextView
-        android:id="@+id/tvSiteFilter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Image Type"
-        android:textAppearance="?android:attr/textAppearanceMedium" />
-        
-        <EditText
-        android:id="@+id/etSiteFilter"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10" />
 
+        <TextView
+            android:id="@+id/tvSiteFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/site_filter_text"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <EditText
+            android:id="@+id/etSiteFilter"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="@string/site_filter_hint"
+            android:inputType="text"
+            android:gravity="right"
+            android:ems="10" />
     </LinearLayout>
+
+    <Button
+        android:id="@+id/btnSaveSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/llSiteFilter"
+        android:layout_below="@+id/llSiteFilter"
+        android:layout_marginTop="20dp"
+        android:onClick="onSaveImageSettings"
+        android:text="@string/settings_button_string" />
 
 </RelativeLayout>

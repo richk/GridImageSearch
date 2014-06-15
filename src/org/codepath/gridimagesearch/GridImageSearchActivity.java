@@ -28,13 +28,17 @@ import android.widget.Toast;
 public class GridImageSearchActivity extends Activity {
 	private static final String LOG_TAG = GridImageSearchActivity.class.getSimpleName();
 	private static final String GIS_BASE_URL = "https://ajax.googleapis.com/ajax/services/search/images";
-	private static final String GIS_RSZ_PARAM = "rsz";
-	private static final String GIS_START_PARAM = "start";
+	private static final String GIS_SIZE_PARAM = "imgsz";
+	private static final String GIS_COLOR_PARAM = "imgcolor";
+	private static final String GIS_TYPE_PARAM = "imgtype";
+	private static final String GIS_SITE_PARAM = "as_sitesearch";
+	private static final int PAGESIZE = 8;
 	
 	private EditText etQuery;
 	private Button btnSearch;
 	private GridView gvResults;
 	private ImageResultsArrayAdapter imageResultsArrayAdapter;
+	private ImageSettingsParams mImageSettingsParams;
 	
 	List<ImageResult> imageResults = new ArrayList<ImageResult>(); 
 
@@ -56,6 +60,14 @@ public class GridImageSearchActivity extends Activity {
 			    startActivity(i);
 			}
 		});
+		gvResults.setOnScrollListener(new EndlessScrollListener() {
+			
+			@Override
+			public void onLoadMore(int page, int totalItemsCount) {
+	            customLoadMoreDataFromApi(totalItemsCount); 
+			}
+		});
+		mImageSettingsParams = new ImageSettingsParams();
 	}
 	
 	public void setupViews() {
@@ -72,20 +84,33 @@ public class GridImageSearchActivity extends Activity {
 	}
 	
 	public void onSettings(MenuItem v) {
-		Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show();
 		Intent i = new Intent(this, ImageSettingsActivity.class);
-		startActivity(i);
+		i.putExtra("settings", mImageSettingsParams);
+		startActivityForResult(i, 40);
 	}
 	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		super.onActivityResult(requestCode, resultCode, data);
+		if (requestCode == 40 && resultCode == RESULT_OK) {
+			Log.d(LOG_TAG, "Updated Settings:" + data.getSerializableExtra("settings"));
+			mImageSettingsParams = (ImageSettingsParams) data.getSerializableExtra("settings");
+			String query = etQuery.getText().toString();
+			imageResultsArrayAdapter.clear();
+			search(query, 0);
+		}
+	}
+
 	public void onImageSearch(View v) {
 	    String query = etQuery.getText().toString();
 	    Toast.makeText(this, query, Toast.LENGTH_SHORT).show();
-	    AsyncHttpClient ayAsyncHttpClient = new AsyncHttpClient();
-	    StringBuilder sb = new StringBuilder();
-	    sb.append(GIS_BASE_URL);
-	    sb.append("?rsz=8&start=0&v=1.0&q=").append(Uri.encode(query));
-	    Log.d(LOG_TAG, "Image query:" + sb.toString());
-	    ayAsyncHttpClient.get(sb.toString(), 
+	    imageResultsArrayAdapter.clear();
+	    search(query, 0);
+	}
+	
+	public void search(String query, int offset) {
+		AsyncHttpClient ayAsyncHttpClient = new AsyncHttpClient();
+	    ayAsyncHttpClient.get(getImageSearchUrl(query, offset), 
 	    		new JsonHttpResponseHandler() {
 	    	        @Override
 	    	        public void onSuccess(JSONObject response) {
@@ -93,15 +118,40 @@ public class GridImageSearchActivity extends Activity {
 	    	        	Log.d(LOG_TAG, "Result:" + response.toString());
 	    	        	try {
 	    	        		imageJsonResults = response.getJSONObject("responseData").getJSONArray("results");
-	    	        		imageResults.clear();
 	    	        		imageResultsArrayAdapter.addAll(ImageResult.fromJSONArray(imageJsonResults));
 	    	        		Log.d(LOG_TAG, imageResults.toString());
 	    	        	} catch(JSONException je) {
 	    	        		Log.e(LOG_TAG, "JSONException", je);
 	    	        	}
 	    	        }
-	    	
-	    	
 	    });
 	}
+	
+	public String getImageSearchUrl(String query, int offset) {
+		StringBuilder sb = new StringBuilder();
+	    sb.append(GIS_BASE_URL);
+	    sb.append("?rsz=8&v=1.0&q=").append(Uri.encode(query));
+	    sb.append("&start=").append(offset);
+	    if (mImageSettingsParams != null) {
+	    	if (mImageSettingsParams.getImageSize() != null && !"None".equals(mImageSettingsParams.getImageSize())) { 
+	    		sb.append("&").append(GIS_SIZE_PARAM).append("=").append(mImageSettingsParams.getImageSize());
+	    	}
+	    	if (mImageSettingsParams.getColorFilter() != null && !"None".equals(mImageSettingsParams.getColorFilter())) {
+	    		sb.append("&").append(GIS_COLOR_PARAM).append("=").append(mImageSettingsParams.getColorFilter());
+	    	}
+	    	if (mImageSettingsParams.getImageType() != null  && !"None".equals(mImageSettingsParams.getImageType())) {
+	    		sb.append("&").append(GIS_TYPE_PARAM).append("=").append(mImageSettingsParams.getImageType());
+	    	}
+	    	if (mImageSettingsParams.getSiteFilter() != null) {
+	    		sb.append("&").append(GIS_SITE_PARAM).append("=").append(mImageSettingsParams.getSiteFilter());
+	    	}
+	    }
+	    Log.d(LOG_TAG, "Search Url:" + sb.toString());
+	    return sb.toString();
+	}
+	
+    public void customLoadMoreDataFromApi(int offset) {
+    	String query = etQuery.getText().toString();
+        search(query, offset/PAGESIZE);	
+    }
 }

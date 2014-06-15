@@ -1,15 +1,67 @@
 package org.codepath.gridimagesearch;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Intent;
 import android.view.Menu;
+import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
 
 public class ImageSettingsActivity extends Activity {
+	private static final String LOG_TAG = ImageSettingsActivity.class.getSimpleName();
+	private Spinner etImageSize;
+	private Spinner etColorFilter;
+	private Spinner etImageType;
+	private EditText etSiteFilter;
+	private ArrayAdapter<CharSequence> imageSizeAdapter;
+	private ArrayAdapter<CharSequence> imageColorAdapter;
+	private ArrayAdapter<CharSequence> imageTypeAdapter;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_image_settings);
+		setupViews();
+		ImageSettingsParams imageParams = (ImageSettingsParams) getIntent().getSerializableExtra("settings");
+		if (imageParams != null) {
+	    	if (imageParams.getImageSize() != null) { 
+	    		int itemPos = imageSizeAdapter.getPosition(imageParams.getImageSize());
+	    		etImageSize.setSelection(itemPos);
+	    	}
+	    	if (imageParams.getColorFilter() != null) {
+	    		int itemPos = imageColorAdapter.getPosition(imageParams.getColorFilter());
+	    		etColorFilter.setSelection(itemPos);
+	    	}
+	    	if (imageParams.getImageType() != null) {
+	    		int itemPos = imageTypeAdapter.getPosition(imageParams.getImageType());
+	    		etImageType.setSelection(itemPos);
+	    	}
+	    	if (imageParams.getSiteFilter() != null) {
+	    		etSiteFilter.setText(imageParams.getSiteFilter());
+	    	}
+	    }
+	}
+	
+	public void setupViews() {
+		etImageSize = (Spinner) findViewById(R.id.etImageSize);
+		imageSizeAdapter = ArrayAdapter.createFromResource(this,
+		        R.array.image_size_array, android.R.layout.simple_spinner_item);
+		imageSizeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		etImageSize.setAdapter(imageSizeAdapter);
+		etColorFilter = (Spinner) findViewById(R.id.etColorFilter);
+		imageColorAdapter = ArrayAdapter.createFromResource(this,
+		        R.array.image_color_array, android.R.layout.simple_spinner_item);
+		imageColorAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		etColorFilter.setAdapter(imageColorAdapter);
+		etImageType = (Spinner) findViewById(R.id.etImageType);
+		imageTypeAdapter = ArrayAdapter.createFromResource(this,
+		        R.array.image_type_array, android.R.layout.simple_spinner_item);
+		imageTypeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		etImageType.setAdapter(imageTypeAdapter);
+		etSiteFilter = (EditText) findViewById(R.id.etSiteFilter);
 	}
 
 	@Override
@@ -18,5 +70,20 @@ public class ImageSettingsActivity extends Activity {
 		getMenuInflater().inflate(R.menu.image_settings, menu);
 		return true;
 	}
-
+	
+	public void onSaveImageSettings(View v) {
+	    ImageSettingsParams imageSettingsParams = new ImageSettingsParams();
+	    String imageSize = (String) etImageSize.getSelectedItem();
+	    String colorFilter = (String) etColorFilter.getSelectedItem();
+	    String imageType = (String) etImageType.getSelectedItem();
+	    String siteFilter = etSiteFilter.getText() == null?ImageSearchContracts.DEFAULT_SITE_FILTER:etSiteFilter.getText().toString();
+	    imageSettingsParams.setImageSize(imageSize);
+	    imageSettingsParams.setColorFilter(colorFilter);
+	    imageSettingsParams.setImageType(imageType);
+	    imageSettingsParams.setSiteFilter(siteFilter);
+	    Intent i = new Intent();
+	    i.putExtra("settings", imageSettingsParams);
+	    setResult(RESULT_OK, i);
+	    finish();
+	}
 }
