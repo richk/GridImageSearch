@@ -17,6 +17,9 @@
     <string name="color_filter_hint">blue</string>
     <string name="site_filter_hint">yahoo.com</string>
     <string name="settings_button_string">Save</string>
+    <string name="search_title">Search</string>
+    <string name="search_activity_title">ImageSearch</string>
+    <string name="background_image_desc">Search</string>
     
     <string-array name="image_size_array">
         <item>None</item>

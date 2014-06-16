@@ -16,20 +16,27 @@ public class ImageResultsArrayAdapter extends ArrayAdapter<ImageResult> {
 	public ImageResultsArrayAdapter(Context context, List<ImageResult> images) {
 		super(context, R.layout.item_image_result, images);
 	}
+	
+	private static class ViewHolder {
+        SmartImageView image;
+    }
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
 		ImageResult imageInfo = this.getItem(position);
 		SmartImageView ivImage;
+		ViewHolder viewHolder;
 		if (convertView == null) {
+			viewHolder = new ViewHolder();
 			LayoutInflater inflator = LayoutInflater.from(getContext());
-		    ivImage = (SmartImageView) inflator.inflate(R.layout.item_image_result, parent, false);	
+		    convertView = inflator.inflate(R.layout.item_image_result, parent, false);
+		    viewHolder.image = (SmartImageView) convertView.findViewById(R.id.sivImageResult);
+		    convertView.setTag(viewHolder);
 		} else {
-			ivImage = (SmartImageView) convertView;
-			ivImage.setImageResource(android.R.color.transparent);
+			viewHolder = (ViewHolder)convertView.getTag();
 		}
-		ivImage.setImageUrl(imageInfo.getThumbUrl());
-		return ivImage;
+		viewHolder.image.setImageUrl(imageInfo.getThumbUrl());
+		return convertView;
 	}
 
 }

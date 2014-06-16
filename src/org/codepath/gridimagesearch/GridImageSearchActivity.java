@@ -13,17 +13,21 @@ import com.loopj.android.http.JsonHttpResponseHandler;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MenuItem.OnActionExpandListener;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.Toast;
+import android.widget.ImageView;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
 
 public class GridImageSearchActivity extends Activity {
 	private static final String LOG_TAG = GridImageSearchActivity.class.getSimpleName();
@@ -34,13 +38,15 @@ public class GridImageSearchActivity extends Activity {
 	private static final String GIS_SITE_PARAM = "as_sitesearch";
 	private static final int PAGESIZE = 8;
 	
-	private EditText etQuery;
-	private Button btnSearch;
 	private GridView gvResults;
 	private ImageResultsArrayAdapter imageResultsArrayAdapter;
 	private ImageSettingsParams mImageSettingsParams;
+	private ImageView ivBackgroundImage;
 	
-	List<ImageResult> imageResults = new ArrayList<ImageResult>(); 
+	private List<ImageResult> imageResults = new ArrayList<ImageResult>(); 
+	private boolean mNoQueryRefresh = false;
+	private String mCurrentQuery;
+	private int mResultCount;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -71,21 +77,59 @@ public class GridImageSearchActivity extends Activity {
 	}
 	
 	public void setupViews() {
-		etQuery = (EditText) findViewById(R.id.etQuery);
-		btnSearch = (Button) findViewById(R.id.btnSearch);
 		gvResults = (GridView) findViewById(R.id.gvResults);
+		ivBackgroundImage = (ImageView) findViewById(R.id.ivBackgroundImage);
 	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main_menu, menu);
-		return true;
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.main_menu, menu);
+		MenuItem searchItem = menu.findItem(R.id.action_search);
+		searchItem.setOnActionExpandListener(new OnActionExpandListener() {
+			
+			@Override
+			public boolean onMenuItemActionExpand(MenuItem item) {
+				Log.e(LOG_TAG, "Action View Expanded");
+				return true;
+			}
+			
+			@Override
+			public boolean onMenuItemActionCollapse(MenuItem item) {
+				Log.e(LOG_TAG, "Action View Collapse");
+				mNoQueryRefresh = true;
+				return true;
+			}
+		});
+	    SearchView searchView = (SearchView) searchItem.getActionView();
+	    if (searchView != null) {
+	    	Log.e(LOG_TAG, "Setting actions on search view");
+	    	searchView.setOnQueryTextListener(new OnQueryTextListener() {
+	    		@Override
+	    		public boolean onQueryTextSubmit(String query) {
+	    			Log.e(LOG_TAG, "onQuerySubmit. Query=" + query);
+	    			mCurrentQuery = query;
+	    			newSearch(query);
+	    			return true;
+	    		}
+
+	    		@Override
+	    		public boolean onQueryTextChange(String newText) {
+	    			Log.e(LOG_TAG, "onQueryTextChange. Query=" + newText);
+	    			mCurrentQuery = newText;
+	    			newSearch(newText);
+	    			return false;
+	    		}
+	    	});
+	    }
+	    return true;
 	}
 	
 	public void onSettings(MenuItem v) {
 		Intent i = new Intent(this, ImageSettingsActivity.class);
 		i.putExtra("settings", mImageSettingsParams);
+		mNoQueryRefresh = true;
 		startActivityForResult(i, 40);
 	}
 	
@@ -95,20 +139,26 @@ public class GridImageSearchActivity extends Activity {
 		if (requestCode == 40 && resultCode == RESULT_OK) {
 			Log.d(LOG_TAG, "Updated Settings:" + data.getSerializableExtra("settings"));
 			mImageSettingsParams = (ImageSettingsParams) data.getSerializableExtra("settings");
-			String query = etQuery.getText().toString();
-			imageResultsArrayAdapter.clear();
-			search(query, 0);
 		}
 	}
 
-	public void onImageSearch(View v) {
-	    String query = etQuery.getText().toString();
-	    Toast.makeText(this, query, Toast.LENGTH_SHORT).show();
-	    imageResultsArrayAdapter.clear();
-	    search(query, 0);
+	public void newSearch(String query) {
+		Log.e(LOG_TAG, "New Search:" + query);
+		ivBackgroundImage.setVisibility(View.GONE);
+		if (mNoQueryRefresh == true) {
+			Log.e(LOG_TAG, "Action View collapsed");
+			mNoQueryRefresh = false;
+			return;
+		}
+		if (query != null) {
+			imageResultsArrayAdapter.clear();
+			mResultCount = 0;
+			search(query, 0);
+		}
 	}
 	
 	public void search(String query, int offset) {
+		Log.e(LOG_TAG, "Search:" + query);
 		AsyncHttpClient ayAsyncHttpClient = new AsyncHttpClient();
 	    ayAsyncHttpClient.get(getImageSearchUrl(query, offset), 
 	    		new JsonHttpResponseHandler() {
@@ -119,7 +169,9 @@ public class GridImageSearchActivity extends Activity {
 	    	        	try {
 	    	        		imageJsonResults = response.getJSONObject("responseData").getJSONArray("results");
 	    	        		imageResultsArrayAdapter.addAll(ImageResult.fromJSONArray(imageJsonResults));
+	    	        		mResultCount = imageResultsArrayAdapter.getCount();
 	    	        		Log.d(LOG_TAG, imageResults.toString());
+	    	        		Log.e(LOG_TAG, "Result Count:" + mResultCount);
 	    	        	} catch(JSONException je) {
 	    	        		Log.e(LOG_TAG, "JSONException", je);
 	    	        	}
@@ -151,7 +203,13 @@ public class GridImageSearchActivity extends Activity {
 	}
 	
     public void customLoadMoreDataFromApi(int offset) {
-    	String query = etQuery.getText().toString();
-        search(query, offset/PAGESIZE);	
+    	if (mCurrentQuery != null) {
+    		search(mCurrentQuery, offset);	
+    	}
     }
+    
+    public void hideSoftKeyboard(View view){
+		  InputMethodManager imm =(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+		  imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+  }
 }
