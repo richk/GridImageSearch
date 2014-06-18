@@ -61,9 +61,6 @@ public class GridImageSearchActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_grid_image_search);
 		setupViews();
-		if (!isNetworkAvailable()) {
-			Toast.makeText(this, "Network not available. Try again later", Toast.LENGTH_SHORT);
-		}
 		imageResultsArrayAdapter = new ImageResultsArrayAdapter(this, imageResults);
 		gvResults.setAdapter(imageResultsArrayAdapter);
 		gvResults.setOnItemClickListener(new OnItemClickListener() {
@@ -169,7 +166,6 @@ public class GridImageSearchActivity extends Activity {
 	public void onSettings(MenuItem v) {
 		Intent i = new Intent(this, ImageSettingsActivity.class);
 		i.putExtra("settings", mImageSettingsParams);
-//		mNoQueryRefresh = true;
 		startActivityForResult(i, 40);
 	}
 	
@@ -201,6 +197,10 @@ public class GridImageSearchActivity extends Activity {
 	public void search(final String query, final int offset) {
 		Log.e(LOG_TAG, "Search:" + query);
 		AsyncHttpClient ayAsyncHttpClient = new AsyncHttpClient();
+		if (!isNetworkAvailable()) {
+			Toast.makeText(this, "Network not available. Try again later", Toast.LENGTH_SHORT).show();
+			return;
+		}
 	    ayAsyncHttpClient.get(getImageSearchUrl(query, offset), 
 	    		new JsonHttpResponseHandler() {
 	    	        @Override
