@@ -20,6 +20,8 @@
     <string name="search_title">Search</string>
     <string name="search_activity_title">ImageSearch</string>
     <string name="background_image_desc">Search</string>
+    <string name="home_screen_text1">Google Image Search Client</string>
+    <string name="home_screen_text2">Click Search and Go!</string>
     
     <string-array name="image_size_array">
         <item>None</item>

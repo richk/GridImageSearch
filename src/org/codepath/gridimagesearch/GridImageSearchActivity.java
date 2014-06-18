@@ -1,7 +1,9 @@
 package org.codepath.gridimagesearch;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -10,6 +12,8 @@ import org.json.JSONObject;
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.app.Activity;
@@ -26,8 +30,10 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SearchView;
 import android.widget.SearchView.OnQueryTextListener;
+import android.widget.Toast;
 
 public class GridImageSearchActivity extends Activity {
 	private static final String LOG_TAG = GridImageSearchActivity.class.getSimpleName();
@@ -37,22 +43,27 @@ public class GridImageSearchActivity extends Activity {
 	private static final String GIS_TYPE_PARAM = "imgtype";
 	private static final String GIS_SITE_PARAM = "as_sitesearch";
 	private static final int PAGESIZE = 8;
+	private static final String RECENT_SEARCH_FILE_NAME = "recent";
 	
 	private GridView gvResults;
 	private ImageResultsArrayAdapter imageResultsArrayAdapter;
 	private ImageSettingsParams mImageSettingsParams;
-	private ImageView ivBackgroundImage;
 	
 	private List<ImageResult> imageResults = new ArrayList<ImageResult>(); 
+	private Set<ImageResult> recentSearches = new HashSet<ImageResult>();
 	private boolean mNoQueryRefresh = false;
-	private String mCurrentQuery;
+	private String mCurrentQuery = "";
 	private int mResultCount;
+	private LinearLayout mHomeScreen;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_grid_image_search);
 		setupViews();
+		if (!isNetworkAvailable()) {
+			Toast.makeText(this, "Network not available. Try again later", Toast.LENGTH_SHORT);
+		}
 		imageResultsArrayAdapter = new ImageResultsArrayAdapter(this, imageResults);
 		gvResults.setAdapter(imageResultsArrayAdapter);
 		gvResults.setOnItemClickListener(new OnItemClickListener() {
@@ -62,6 +73,7 @@ public class GridImageSearchActivity extends Activity {
 					long arg3) {
 			    Intent i = new Intent(getApplicationContext(), ImageDisplayActivity.class);
 			    ImageResult imageResult = imageResults.get(position);
+			    recentSearches.add(imageResult);
 			    i.putExtra("result", imageResult);
 			    startActivity(i);
 			}
@@ -74,12 +86,22 @@ public class GridImageSearchActivity extends Activity {
 			}
 		});
 		mImageSettingsParams = new ImageSettingsParams();
+		if (savedInstanceState != null && savedInstanceState.getString("query") != null) {
+			String query = savedInstanceState.getString("query");
+			mCurrentQuery = query;
+			newSearch(query);
+		}
 	}
 	
 	public void setupViews() {
 		gvResults = (GridView) findViewById(R.id.gvResults);
-		ivBackgroundImage = (ImageView) findViewById(R.id.ivBackgroundImage);
+		mHomeScreen = (LinearLayout) findViewById(R.id.llHomeScreen);
 	}
+	
+	protected void onSaveInstanceState(Bundle state) {
+	    super.onSaveInstanceState(state);
+	    state.putString("query", mCurrentQuery);
+	  }
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -87,6 +109,7 @@ public class GridImageSearchActivity extends Activity {
 		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.main_menu, menu);
 		MenuItem searchItem = menu.findItem(R.id.action_search);
+		final SearchView searchView = (SearchView) searchItem.getActionView();
 		searchItem.setOnActionExpandListener(new OnActionExpandListener() {
 			
 			@Override
@@ -97,12 +120,12 @@ public class GridImageSearchActivity extends Activity {
 			
 			@Override
 			public boolean onMenuItemActionCollapse(MenuItem item) {
-				Log.e(LOG_TAG, "Action View Collapse");
+				Log.e(LOG_TAG, "Action View Collapse. Query:" + searchView.getQuery());
+				Log.e(LOG_TAG, "Current Query:" + mCurrentQuery);
 				mNoQueryRefresh = true;
 				return true;
 			}
 		});
-	    SearchView searchView = (SearchView) searchItem.getActionView();
 	    if (searchView != null) {
 	    	Log.e(LOG_TAG, "Setting actions on search view");
 	    	searchView.setOnQueryTextListener(new OnQueryTextListener() {
@@ -110,15 +133,32 @@ public class GridImageSearchActivity extends Activity {
 	    		public boolean onQueryTextSubmit(String query) {
 	    			Log.e(LOG_TAG, "onQuerySubmit. Query=" + query);
 	    			mCurrentQuery = query;
+	    			hideSoftKeyboard(searchView);
+	    			mNoQueryRefresh = false;
 	    			newSearch(query);
 	    			return true;
 	    		}
 
 	    		@Override
 	    		public boolean onQueryTextChange(String newText) {
-	    			Log.e(LOG_TAG, "onQueryTextChange. Query=" + newText);
-	    			mCurrentQuery = newText;
-	    			newSearch(newText);
+	    			String query = newText.trim();
+	    			Log.e(LOG_TAG, "New Query:" + query);
+	    			Log.e(LOG_TAG, "New Query length:" + query.length());
+	    			if (mNoQueryRefresh) {
+	    				Log.e(LOG_TAG, "Not refresing query");
+	    				mNoQueryRefresh = false;
+	    			} else {
+	    				if (query.isEmpty()) {
+	    					Log.e(LOG_TAG, "onQueryTextChange. Empty text");
+	    					mHomeScreen.setVisibility(View.VISIBLE);
+	    					imageResultsArrayAdapter.clear();
+	    					imageResultsArrayAdapter.notifyDataSetChanged();
+	    				} else {
+	    					mCurrentQuery = query;
+	    					Log.e(LOG_TAG, "onQueryTextChange. Query=" + query);
+	    					newSearch(query);
+	    				}
+	    			}
 	    			return false;
 	    		}
 	    	});
@@ -129,7 +169,7 @@ public class GridImageSearchActivity extends Activity {
 	public void onSettings(MenuItem v) {
 		Intent i = new Intent(this, ImageSettingsActivity.class);
 		i.putExtra("settings", mImageSettingsParams);
-		mNoQueryRefresh = true;
+//		mNoQueryRefresh = true;
 		startActivityForResult(i, 40);
 	}
 	
@@ -139,25 +179,26 @@ public class GridImageSearchActivity extends Activity {
 		if (requestCode == 40 && resultCode == RESULT_OK) {
 			Log.d(LOG_TAG, "Updated Settings:" + data.getSerializableExtra("settings"));
 			mImageSettingsParams = (ImageSettingsParams) data.getSerializableExtra("settings");
+			newSearch(mCurrentQuery);
 		}
 	}
 
 	public void newSearch(String query) {
 		Log.e(LOG_TAG, "New Search:" + query);
-		ivBackgroundImage.setVisibility(View.GONE);
 		if (mNoQueryRefresh == true) {
 			Log.e(LOG_TAG, "Action View collapsed");
 			mNoQueryRefresh = false;
 			return;
 		}
 		if (query != null) {
+			Log.e(LOG_TAG, "Cleared the adapter");
 			imageResultsArrayAdapter.clear();
 			mResultCount = 0;
 			search(query, 0);
 		}
 	}
 	
-	public void search(String query, int offset) {
+	public void search(final String query, final int offset) {
 		Log.e(LOG_TAG, "Search:" + query);
 		AsyncHttpClient ayAsyncHttpClient = new AsyncHttpClient();
 	    ayAsyncHttpClient.get(getImageSearchUrl(query, offset), 
@@ -167,8 +208,18 @@ public class GridImageSearchActivity extends Activity {
 	    	        	JSONArray imageJsonResults = null;
 	    	        	Log.d(LOG_TAG, "Result:" + response.toString());
 	    	        	try {
+	    	        		if (response.isNull("responseData")) {
+	    	        			return;
+	    	        		}
 	    	        		imageJsonResults = response.getJSONObject("responseData").getJSONArray("results");
-	    	        		imageResultsArrayAdapter.addAll(ImageResult.fromJSONArray(imageJsonResults));
+	    	        		Log.e(LOG_TAG, "Response received for query:" + query);
+	    	        		if (mCurrentQuery.equals(query)) {
+	    	        			if (offset == 0) {
+		    	        			imageResultsArrayAdapter.clear();
+		    	        		}
+	    	        			mHomeScreen.setVisibility(View.GONE);
+	    	        		    imageResultsArrayAdapter.addAll(ImageResult.fromJSONArray(imageJsonResults));
+	    	        		}
 	    	        		mResultCount = imageResultsArrayAdapter.getCount();
 	    	        		Log.d(LOG_TAG, imageResults.toString());
 	    	        		Log.e(LOG_TAG, "Result Count:" + mResultCount);
@@ -212,4 +263,11 @@ public class GridImageSearchActivity extends Activity {
 		  InputMethodManager imm =(InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
 		  imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
   }
+    
+    private Boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager 
+              = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+    }
 }

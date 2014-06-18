@@ -29,6 +29,11 @@ public class ImageResult implements Serializable {
 		}
 	}
 	
+	public ImageResult(String tUrl, String fUrl) {
+		fullUrl = fUrl;
+		thumbUrl = tUrl;
+	}
+	
 	public String getFullUrl() {
 		return fullUrl;
 	}
@@ -53,7 +58,26 @@ public class ImageResult implements Serializable {
 	
 	@Override
 	public String toString() {
-		return thumbUrl;
+		return thumbUrl + "," + fullUrl;
 	}
 
+	@Override
+	public boolean equals(Object o) {
+		if (o instanceof ImageResult) {
+		    ImageResult other = (ImageResult) o;
+		    if (thumbUrl.equals(other.getThumbUrl()) && fullUrl.equals(other.getFullUrl())) {
+		    	return true;
+		    } else {
+		    	return false;
+		    }
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		return (fullUrl.hashCode() + thumbUrl.hashCode());
+	}
+	
 }
