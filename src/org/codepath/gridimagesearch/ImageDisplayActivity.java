@@ -3,8 +3,12 @@ package org.codepath.gridimagesearch;
 import com.loopj.android.image.SmartImageView;
 
 import android.os.Bundle;
+import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
+import android.view.MenuItem;
 
 public class ImageDisplayActivity extends Activity {
 	
@@ -17,6 +21,8 @@ public class ImageDisplayActivity extends Activity {
 		ImageResult image = (ImageResult) getIntent().getSerializableExtra("result");
 		ivImage = (SmartImageView) findViewById(R.id.ivResult);
 		ivImage.setImageUrl(image.getFullUrl());
+		ActionBar actionBar = getActionBar();
+	    actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 
 	@Override
@@ -25,5 +31,20 @@ public class ImageDisplayActivity extends Activity {
 		getMenuInflater().inflate(R.menu.image_display, menu);
 		return true;
 	}
+	
+	@Override
+	  public boolean onOptionsItemSelected(MenuItem item){
+	    
+	    switch (item.getItemId()) {
+	      // Respond to the action bar's Up/Home button
+	      case android.R.id.home:
+	        Intent intent = NavUtils.getParentActivityIntent(this); 
+	        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); 
+	        NavUtils.navigateUpTo(this, intent);
+	        return true;        
+	    }
+	    
+	    return super.onOptionsItemSelected(item);
+	  }
 
 }

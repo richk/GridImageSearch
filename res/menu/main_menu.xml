@@ -12,5 +12,5 @@
         android:icon="@drawable/ic_settings"
         android:onClick="onSettings"
         android:showAsAction="ifRoom"
-        android:title="Compose" />
+        android:title="@string/settings_item" />
 </menu>

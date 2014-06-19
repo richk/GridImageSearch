@@ -2,9 +2,12 @@ package org.codepath.gridimagesearch;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.content.Intent;
+import android.support.v4.app.NavUtils;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -43,6 +46,8 @@ public class ImageSettingsActivity extends Activity {
 	    		etSiteFilter.setText(imageParams.getSiteFilter());
 	    	}
 	    }
+		ActionBar actionBar = getActionBar();
+	    actionBar.setDisplayHomeAsUpEnabled(true);
 	}
 	
 	public void setupViews() {
@@ -70,6 +75,21 @@ public class ImageSettingsActivity extends Activity {
 		getMenuInflater().inflate(R.menu.image_settings, menu);
 		return true;
 	}
+	
+	@Override
+	  public boolean onOptionsItemSelected(MenuItem item){
+	    
+	    switch (item.getItemId()) {
+	      // Respond to the action bar's Up/Home button
+	      case android.R.id.home:
+	        Intent intent = NavUtils.getParentActivityIntent(this); 
+	        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP); 
+	        NavUtils.navigateUpTo(this, intent);
+	        return true;        
+	    }
+	    
+	    return super.onOptionsItemSelected(item);
+	  }
 	
 	public void onSaveImageSettings(View v) {
 	    ImageSettingsParams imageSettingsParams = new ImageSettingsParams();

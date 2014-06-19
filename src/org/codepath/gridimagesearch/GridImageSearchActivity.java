@@ -90,6 +90,11 @@ public class GridImageSearchActivity extends Activity {
 		}
 	}
 	
+	@Override
+	protected void onNewIntent(Intent intent) {
+		newSearch(mCurrentQuery);
+	}
+	
 	public void setupViews() {
 		gvResults = (GridView) findViewById(R.id.gvResults);
 		mHomeScreen = (LinearLayout) findViewById(R.id.llHomeScreen);
@@ -201,33 +206,51 @@ public class GridImageSearchActivity extends Activity {
 			Toast.makeText(this, "Network not available. Try again later", Toast.LENGTH_SHORT).show();
 			return;
 		}
-	    ayAsyncHttpClient.get(getImageSearchUrl(query, offset), 
-	    		new JsonHttpResponseHandler() {
-	    	        @Override
-	    	        public void onSuccess(JSONObject response) {
-	    	        	JSONArray imageJsonResults = null;
-	    	        	Log.d(LOG_TAG, "Result:" + response.toString());
-	    	        	try {
-	    	        		if (response.isNull("responseData")) {
-	    	        			return;
-	    	        		}
-	    	        		imageJsonResults = response.getJSONObject("responseData").getJSONArray("results");
-	    	        		Log.e(LOG_TAG, "Response received for query:" + query);
-	    	        		if (mCurrentQuery.equals(query)) {
-	    	        			if (offset == 0) {
-		    	        			imageResultsArrayAdapter.clear();
-		    	        		}
-	    	        			mHomeScreen.setVisibility(View.GONE);
-	    	        		    imageResultsArrayAdapter.addAll(ImageResult.fromJSONArray(imageJsonResults));
-	    	        		}
-	    	        		mResultCount = imageResultsArrayAdapter.getCount();
-	    	        		Log.d(LOG_TAG, imageResults.toString());
-	    	        		Log.e(LOG_TAG, "Result Count:" + mResultCount);
-	    	        	} catch(JSONException je) {
-	    	        		Log.e(LOG_TAG, "JSONException", je);
-	    	        	}
-	    	        }
-	    });
+		ayAsyncHttpClient.get(getImageSearchUrl(query, offset), 
+				new JsonHttpResponseHandler() {
+			@Override
+			public void onSuccess(JSONObject response) {
+				JSONArray imageJsonResults = null;
+				Log.d(LOG_TAG, "Result:" + response.toString());
+				try {
+					if (response.isNull("responseData")) {
+						return;
+					}
+					imageJsonResults = response.getJSONObject("responseData").getJSONArray("results");
+					Log.e(LOG_TAG, "Response received for query:" + query);
+					if (mCurrentQuery.equals(query)) {
+						if (offset == 0) {
+							imageResultsArrayAdapter.clear();
+						}
+						mHomeScreen.setVisibility(View.GONE);
+						imageResultsArrayAdapter.addAll(ImageResult.fromJSONArray(imageJsonResults));
+					}
+					mResultCount = imageResultsArrayAdapter.getCount();
+					Log.d(LOG_TAG, imageResults.toString());
+					Log.e(LOG_TAG, "Result Count:" + mResultCount);
+				} catch(JSONException je) {
+					Log.e(LOG_TAG, "JSONException", je);
+				}
+			}
+
+			@Override
+			public void onFailure(Throwable e, JSONArray errorResponse){
+				Log.e(LOG_TAG, "Error:" + errorResponse.toString());
+				Toast.makeText(getApplicationContext(), "Error - please check your Internet connection", Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void onFailure ( Throwable e, JSONObject errorResponse ) {
+				Log.e(LOG_TAG, "Error:" + errorResponse.toString());
+				Toast.makeText(getApplicationContext(), "Error - please check your Internet connection", Toast.LENGTH_SHORT).show();
+			}
+
+			@Override
+			public void onFailure ( Throwable e, String errorResponse ) {
+				Log.e(LOG_TAG, "Error:" + errorResponse.toString());
+				Toast.makeText(getApplicationContext(), "Error - please check your Internet connection", Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
 	
 	public String getImageSearchUrl(String query, int offset) {

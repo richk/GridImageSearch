@@ -27,11 +27,19 @@
         </activity>
         <activity
             android:name="org.codepath.gridimagesearch.ImageDisplayActivity"
-            android:label="@string/title_activity_image_display" >
+            android:label="@string/title_activity_image_display"
+            android:parentActivityName="org.codepath.gridimagesearch.GridImageSearchActivity"  >
+            <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="org.codepath.gridimagesearch.GridImageSearchActivity" />
         </activity>
         <activity
             android:name="org.codepath.gridimagesearch.ImageSettingsActivity"
-            android:label="@string/title_activity_image_settings" >
+            android:label="@string/title_activity_image_settings"
+            android:parentActivityName="org.codepath.gridimagesearch.GridImageSearchActivity"  >
+            <meta-data
+            android:name="android.support.PARENT_ACTIVITY"
+            android:value="org.codepath.gridimagesearch.GridImageSearchActivity" /> 
         </activity>
     </application>
 

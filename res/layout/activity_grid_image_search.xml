@@ -8,8 +8,17 @@
         android:id="@+id/gvResults"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:numColumns="3" >
+        android:layout_alignParentLeft="true"
+        android:numColumns="auto_fit"
+        android:columnWidth="90dp" 
+        android:background="@android:color/darker_gray"
+        android:horizontalSpacing="1dp"
+        android:verticalSpacing="1dp"
+        android:drawSelectorOnTop="true"
+        android:stretchMode="columnWidth"
+        android:gravity="center" >
     </GridView>
+    
     <LinearLayout
         android:id="@+id/llHomeScreen"
         android:layout_width="wrap_content"

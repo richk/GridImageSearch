@@ -22,6 +22,7 @@
     <string name="background_image_desc">Search</string>
     <string name="home_screen_text1">Google Image Search Client</string>
     <string name="home_screen_text2">Click Search and Go!</string>
+    <string name="settings_item">Settings</string>
     
     <string-array name="image_size_array">
         <item>None</item>
