@@ -23,6 +23,7 @@
     <string name="home_screen_text1">Google Image Search Client</string>
     <string name="home_screen_text2">Click Search and Go!</string>
     <string name="settings_item">Settings</string>
+    <string name="share_string">Share</string>
     
     <string-array name="image_size_array">
         <item>None</item>
