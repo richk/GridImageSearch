@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.codepath.gridimagesearch.ImageSettingsDialogFragment.ImageSettingsListener;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,7 +17,9 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.MediaStore.Images.ImageColumns;
 import android.app.Activity;
+import android.app.FragmentManager;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -36,17 +39,16 @@ import android.widget.SearchView.OnQueryTextListener;
 import android.widget.ShareActionProvider;
 import android.widget.Toast;
 
-public class GridImageSearchActivity extends Activity {
+public class GridImageSearchActivity extends Activity implements ImageSettingsListener {
 	private static final String LOG_TAG = GridImageSearchActivity.class.getSimpleName();
 	private static final String GIS_BASE_URL = "https://ajax.googleapis.com/ajax/services/search/images";
 	private static final String GIS_SIZE_PARAM = "imgsz";
 	private static final String GIS_COLOR_PARAM = "imgcolor";
 	private static final String GIS_TYPE_PARAM = "imgtype";
 	private static final String GIS_SITE_PARAM = "as_sitesearch";
-	private static final int PAGESIZE = 8;
-	private static final String RECENT_SEARCH_FILE_NAME = "recent";
 	
 	private GridView gvResults;
+	
 	private ImageResultsArrayAdapter imageResultsArrayAdapter;
 	private ImageSettingsParams mImageSettingsParams;
 	
@@ -95,6 +97,13 @@ public class GridImageSearchActivity extends Activity {
 	protected void onNewIntent(Intent intent) {
 		newSearch(mCurrentQuery);
 	}
+	
+	@Override
+	public void onSettingsSave(ImageSettingsParams imageSettingsParams) {
+		mImageSettingsParams = imageSettingsParams;
+		newSearch(mCurrentQuery);
+	}
+
 	
 	public void setupViews() {
 		gvResults = (GridView) findViewById(R.id.gvResults);
@@ -170,21 +179,11 @@ public class GridImageSearchActivity extends Activity {
 	}
 	
 	public void onSettings(MenuItem v) {
-		Intent i = new Intent(this, ImageSettingsActivity.class);
-		i.putExtra("settings", mImageSettingsParams);
-		startActivityForResult(i, 40);
+		ImageSettingsDialogFragment dialog = ImageSettingsDialogFragment.newInstance(this, mImageSettingsParams);
+		FragmentManager fm = getFragmentManager();
+		dialog.show(fm, "fragment_settings");
 	}
 	
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		super.onActivityResult(requestCode, resultCode, data);
-		if (requestCode == 40 && resultCode == RESULT_OK) {
-			Log.d(LOG_TAG, "Updated Settings:" + data.getSerializableExtra("settings"));
-			mImageSettingsParams = (ImageSettingsParams) data.getSerializableExtra("settings");
-			newSearch(mCurrentQuery);
-		}
-	}
-
 	public void newSearch(String query) {
 		Log.e(LOG_TAG, "New Search:" + query);
 		if (mNoQueryRefresh == true) {
@@ -260,18 +259,7 @@ public class GridImageSearchActivity extends Activity {
 	    sb.append("?rsz=8&v=1.0&q=").append(Uri.encode(query));
 	    sb.append("&start=").append(offset);
 	    if (mImageSettingsParams != null) {
-	    	if (mImageSettingsParams.getImageSize() != null && !"None".equals(mImageSettingsParams.getImageSize())) { 
-	    		sb.append("&").append(GIS_SIZE_PARAM).append("=").append(mImageSettingsParams.getImageSize());
-	    	}
-	    	if (mImageSettingsParams.getColorFilter() != null && !"None".equals(mImageSettingsParams.getColorFilter())) {
-	    		sb.append("&").append(GIS_COLOR_PARAM).append("=").append(mImageSettingsParams.getColorFilter());
-	    	}
-	    	if (mImageSettingsParams.getImageType() != null  && !"None".equals(mImageSettingsParams.getImageType())) {
-	    		sb.append("&").append(GIS_TYPE_PARAM).append("=").append(mImageSettingsParams.getImageType());
-	    	}
-	    	if (mImageSettingsParams.getSiteFilter() != null) {
-	    		sb.append("&").append(GIS_SITE_PARAM).append("=").append(mImageSettingsParams.getSiteFilter());
-	    	}
+	    	sb.append(mImageSettingsParams.toQueryParams());
 	    }
 	    Log.d(LOG_TAG, "Search Url:" + sb.toString());
 	    return sb.toString();
@@ -294,4 +282,5 @@ public class GridImageSearchActivity extends Activity {
         NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
         return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
     }
+
 }

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <TableLayout
+        android:id="@+id/tlSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tvSettigsTitle"
+        android:layout_marginTop="20dp" >
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dip" >
+
+            <TextView
+                android:id="@+id/tvImageSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:shadowColor="#D3D3D3"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1.5"
+                android:text="@string/image_size_text"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:typeface="sans" />
+
+            <Spinner
+                android:id="@+id/etImageSize"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/image_size_hint"
+                android:inputType="text" />
+
+            <requestFocus
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dip" >
+
+            <TextView
+                android:id="@+id/tvColorFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:shadowColor="#D3D3D3"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1.5"
+                android:text="@string/color_filter_text"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:typeface="sans" />
+
+            <Spinner
+                android:id="@+id/etColorFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/color_filter_hint"
+                android:inputType="text" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dip" >
+
+            <TextView
+                android:id="@+id/tvImageType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:shadowColor="#D3D3D3"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1.5"
+                android:text="@string/image_type_text"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:typeface="sans" />
+
+            <Spinner
+                android:id="@+id/etImageType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/image_type_hint"
+                android:inputType="text" />
+        </TableRow>
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dip" >
+
+            <TextView
+                android:id="@+id/tvSiteFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:shadowColor="#D3D3D3"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="1.5"
+                android:text="@string/site_filter_text"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:typeface="sans" />
+
+            <EditText
+                android:id="@+id/etSiteFilter"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="@string/site_filter_hint"
+                android:inputType="text" />
+        </TableRow>
+    </TableLayout>
+
+    <Button
+        android:id="@+id/btnSaveSettings"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/tlSettings"
+        android:layout_below="@+id/tlSettings"
+        android:layout_marginTop="20dp"
+        android:onClick="onSaveImageSettings"
+        android:text="@string/settings_button_string" />
+</RelativeLayout>
